@@ -1,0 +1,88 @@
+// Rest Api is The creation of get(single or all) , post(add new resource) , put(update a single resource completely) ,
+//  patch(update a part of a resource like in case of full name just updating of last name) , delete(deleting a resource) 
+// requests of resources 
+packages used -> npm i express 
+
+const express = require("express");
+const app = express();
+
+// Middleware to automatically parse JSON and URL-encoded data
+app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// Sample in-memory data store
+let books = ["a", "b", "c"];
+
+// Default route
+app.get("/", (req, res) => {
+    res.send("Hello World Express Server");
+});
+
+// GET endpoint to retrieve all books
+app.get("/getBooks", (req, res) => {
+    res.json({ books, total: books.length });
+});
+
+// POST endpoint to add a new book
+app.post("/addBook", (req, res) => {
+    const book = req.body.book; // Automatically parsed from the request body
+    if (!book) {
+        return res.status(400).json({ message: "Book name is required" });
+    }
+    books.push(book);
+    res.status(201).json({ message: "Book added successfully", books });
+});
+
+// PUT endpoint to update a book by index (full update)
+app.put("/updateBook/:index", (req, res) => {
+    const { index } = req.params;
+    const newBook = req.body.newBook; // Automatically parsed from the request body
+
+    if (index < 0 || index >= books.length) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    books[index] = newBook || books[index];
+    res.json({ message: "Book updated successfully", books });
+});
+
+// PATCH endpoint to update a part of a book (partial update)
+app.patch("/updateBookPart/:index", (req, res) => {
+    const { index } = req.params;
+    const partialUpdate = req.body.book; // Only update part of the resource (e.g., title)
+
+    if (index < 0 || index >= books.length) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    if (partialUpdate) {
+        books[index] = partialUpdate; // Update only the provided part
+        res.json({ message: "Book partially updated successfully", books });
+    } else {
+        res.status(400).json({ message: "No update data provided" });
+    }
+});
+
+// DELETE endpoint to delete a book by index
+app.delete("/deleteBook/:index", (req, res) => {
+    const { index } = req.params;
+
+    if (index < 0 || index >= books.length) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    books.splice(index, 1);
+    res.json({ message: "Book deleted successfully", books });
+});
+
+// Key Methods:
+// app.get(path, callback): Handles GET requests.
+// app.post(path, callback): Handles POST requests.
+// app.put(path, callback): Handles PUT requests.
+// app.patch(path, callback): Handles PATCH requests.
+// app.delete(path, callback): Handles DELETE requests.
+// app.use(middleware): Applies middleware to all or specific routes.
+
+app.listen(9000, () => {
+    console.log("Server running on port 9000");
+});
